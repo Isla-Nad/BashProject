@@ -1,24 +1,22 @@
 #! /usr/bin/bash
+cd $1
+
 PS3=$'\e[1;33mDB: \e[0m\e[1;36m'"$1"$'\e[1;35m ✅\e[0m '
 
-select choice in "Create Table" "List Table" "Select from Table" "Delete from Table" "Insert into Table"  "Update Table" "Drop Table" "Exit"
+list_tables() {
+    echo -e "\e[1;34m-----------Available tables:----------------\e[0m"
+    ls --file-type | grep -v /$ | nl -s": "
+	echo -e "\e[1;34m--------------------------------------------\e[0m"
+}
+
+select choice in "Create Table" "List Tables" "Select from Table" "Delete from Table" "Insert into Table"  "Update Table" "Drop Table" "Exit"
 do 
 	case $REPLY in
 	1)
-        read -p "Enter Name of the Table: " name 
-        if is_valid "$name"; then
-            if [ -f "$name" ] ; then
-                echo "Table '$name' already exists."
-            else
-                touch "$name"
-                echo "Table '$name' created successfully."
-            fi
-        else
-            echo "Invalid Table name."
-        fi
+		source CreateTable.sh
 		;;
 	2)
-		ls --file-type | grep -v /$
+		list_tables
 		;;
 	3)
 		echo "List table"
@@ -33,12 +31,13 @@ do
 		echo "Exit"
 		;;
 	7)
-		ls --file-type | grep -v /$
-		read -p "Enter Name of Table " name
+		list_tables
+		read -p "Enter the name of the table to drop:" name
 		if [ -f $name ] ; then			
 			rm $name
+			echo -e "Table \e[1;32m$name\e[0m has been dropped."
 		else
-			echo "Table '$name' does not exist."	
+			echo -e "Table \e[1;31m$name\e[0m does not exist."	
 		fi 
 		;;
 	8)
@@ -46,6 +45,6 @@ do
 		exit
 		;;
 	*) 
-		echo "NotFound"
+		echo "Invalid choice. Please enter a valid option." ;;
 	esac
 done
