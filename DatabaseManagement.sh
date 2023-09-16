@@ -29,7 +29,7 @@ create_database() {
             echo -e "Database \e[1;32m$name\e[0m created successfully."
         fi
     else
-        echo "Invalid database name. Please use only alphanumeric characters, starting with a letter or underscore."
+        echo -e "\e[1;31mInvalid database name. Please use only alphanumeric characters, starting with a letter or underscore.\e[0m"
     fi
 }
 
@@ -38,7 +38,7 @@ connect_to_database() {
     read -p "Enter the name of the database to connect to: " name
     if [ -d "$name" ]; then
         echo -e "Connected to database \e[1;32m$name\e[0m."
-		source TBchoose.sh "$name"
+		source TableManagement.sh "$name"
     else
         echo -e "Database \e[1;31m$name\e[0m does not exist."
     fi

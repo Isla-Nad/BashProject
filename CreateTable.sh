@@ -11,13 +11,13 @@ while true; do
     read -p "Enter the name of the table: " table_name
     if is_valid_name "$table_name"; then
         if [ -f "$table_name" ]; then
-            echo "Table '$table_name' already exists."
+            echo "Table \e[1;31m$table_name\e[0m already exists."
         else
             touch "$table_name"
             break
         fi
     else
-        echo "Invalid table name. Please use only alphanumeric characters, starting with a letter or underscore."
+        echo -e "\e[1;31mInvalid table name. Please use only alphanumeric characters, starting with a letter or underscore.\e[0m"
     fi
 done
 
@@ -35,7 +35,7 @@ for ((i = 2; i <= col_num; i++)); do
         if is_valid_name "$col_name"; then
             break
         else
-            echo "Invalid column name. Please use only alphanumeric characters, starting with a letter or underscore."
+            echo -e "\e[1;31mInvalid column name. Please use only alphanumeric characters, starting with a letter or underscore.\e[0m"
         fi
     done
 
@@ -46,7 +46,7 @@ for ((i = 2; i <= col_num; i++)); do
             col_types+=("$col_type")
             break
         else
-            echo "Invalid data type. Please enter 'str' or 'int'."
+            echo -e "\e[1;31mInvalid data type. Please enter 'str' or 'int'.\e[0m"
         fi
     done
 done
@@ -54,4 +54,4 @@ done
 echo "${col_names[@]}" | tr ' ' ':' >> "$table_name"
 echo "${col_types[@]}" | tr ' ' ':' >> "$table_name"
 
-echo "Table definition has been saved to '$table_name '."
+echo -e "Table definition has been saved to \e[1;32m$table_name\e[0m."
