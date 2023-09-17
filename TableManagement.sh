@@ -1,4 +1,5 @@
-#!/usr/bin/bash
+#!/usr/bin/bash.
+
 cd "$1"
 
 PS3=$'\e[1;33mDatabase: \e[0m\e[1;36m'"$1"$'\e[1;35m ✅\e[0m '
@@ -48,9 +49,9 @@ while true; do
             read -p "Enter the name of the table to drop: " name
             if [ -f "$name" ]; then
                 rm "$name"
-                echo -e "Table \e[1;32m$name\e[0m has been dropped."
+                echo -e "\e[1;32mTable $name has been dropped.\e[0m"
             else
-                echo -e "Table \e[1;31m$name\e[0m does not exist."
+                echo -e "\e[1;31mTable $name does not exist.\e[0m"
             fi 
             ;;
         8)

@@ -6,7 +6,7 @@ if [ ! -d "$dir" ]; then
 fi
 cd "$dir"
 
-is_valid_name() {
+valid_name() {
     if [[ ! "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
         return 1
     fi
@@ -21,12 +21,12 @@ list_databases() {
 
 create_database() {
     read -p "Enter the name of the new database: " name
-    if is_valid_name "$name"; then
+    if valid_name "$name"; then
         if [ -e "$name" ]; then
-            echo -e "Database \e[1;31m$name\e[0m already exists."
+            echo -e "\e[1;31mDatabase '$name' already exists.\e[0m"
         else
             mkdir "$name"
-            echo -e "Database \e[1;32m$name\e[0m created successfully."
+            echo -e "\e[1;32mDatabase '$name' created successfully.\e[0m"
         fi
     else
         echo -e "\e[1;31mInvalid database name. Please use only alphanumeric characters, starting with a letter or underscore.\e[0m"
@@ -37,10 +37,10 @@ connect_to_database() {
     list_databases
     read -p "Enter the name of the database to connect to: " name
     if [ -d "$name" ]; then
-        echo -e "Connected to database \e[1;32m$name\e[0m."
+        echo -e "\e[1;32mConnected to database '$name'.\e[0m"
 		source TableManagement.sh "$name"
     else
-        echo -e "Database \e[1;31m$name\e[0m does not exist."
+        echo -e "\e[1;31mDatabase '$name' does not exist.\e[0m"
     fi
 }
 
@@ -49,9 +49,9 @@ drop_database() {
     read -p "Enter the name of the database to drop: " name
     if [ -d "$name" ]; then
         rm -r "$name"
-        echo -e "Database \e[1;32m$name\e[0m has been dropped."
+        echo -e "\e[1;32mDatabase '$name' has been dropped.\e[0m"
     else
-        echo -e "Database \e[1;31m$name\e[0m does not exist."
+        echo -e "\e[1;31mDatabase '$name' does not exist.\e[0m"
     fi
 }
 
