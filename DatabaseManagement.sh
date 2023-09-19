@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-xdg-open 'FlowChart.jpeg'
+xdg-open 'Flowchart.jpeg'
 
 dir=~/Downloads/DATABASE
 if [ ! -d "$dir" ]; then
