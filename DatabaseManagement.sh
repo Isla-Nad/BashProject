@@ -1,7 +1,9 @@
 #!/usr/bin/bash
 
-xdg-open 'Flowchart.jpeg'
-echo -e "\e[1;32mThe instruction image has opened, see it.\e[0m"
+if [  -f 'Flowchart.jpeg' ]; then
+    xdg-open 'Flowchart.jpeg'
+    echo -e "\e[1;32mThe instruction image has opened, see it.\e[0m"
+fi
 
 dir=~/Downloads/DATABASE
 if [ ! -d "$dir" ]; then
