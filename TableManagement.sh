@@ -2,13 +2,21 @@
 
 cd "$1"
 
-PS3=$'\e[1;33mDatabase: \e[0m\e[1;36m'"$1"$'\e[1;35m ✅\e[0m '
+tables=($(ls --file-type | grep -v /$))
 
 list_tables() {
-    echo -e "\e[1;34m-----------Available tables:----------------\e[0m"
-    ls --file-type | grep -v /$ | nl -s": "
-    echo -e "\e[1;34m--------------------------------------------\e[0m"
+    if [ "${#tables[@]}" -eq 0 ]; then
+        echo -e "\e[1;31mNo tables available.\e[0m"
+    else
+        echo -e "\e[1;34m-:Available tables:-\e[0m"
+        for ((i = 0; i < ${#tables[@]}; i++)); do
+            echo "$i: ${tables[$i]}"
+        done
+        echo -e "\e[1;34m--------------------\e[0m"
+    fi
 }
+
+
 
 while true; do
     echo -e "\e[1;33mTable Management Menu:\e[0m"
@@ -19,7 +27,8 @@ while true; do
     echo "5. Update Table"
     echo "6. Delete from Table"
     echo "7. Drop Table"
-    echo "8. Exit"
+    echo "8. Return"
+    echo "9. Exit"
     read -p "Enter your choice: " choice
     case $choice in
         1)
@@ -55,6 +64,10 @@ while true; do
             fi 
             ;;
         8)
+            cd ..
+            break
+            ;;
+        9)
             echo -e "\e[1;33mGoodbye\e[0m"
             exit
             ;;

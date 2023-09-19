@@ -16,26 +16,32 @@ valid_value() {
 }
 
 while true; do
-    read -p "Enter the name of the table: " table_name
-    if [ -f "$table_name" ]; then
-        IFS=":" read -ra col_names <<< $(awk 'NR==1' "$table_name")
-        IFS=":" read -ra col_types <<< $(awk 'NR==2' "$table_name")
+    read -p "Enter the index of the table you want to insert into (type 'r' to return): " table_index
 
-        retry=true 
-        while $retry; do
-            if [ "${col_names[0]}" == "${col_names[0]}" ]; then
-                read -p "Enter a unique value for ${col_names[0]} (${col_types[0]}): " new_id
-                if grep -q "^$new_id:" "$table_name"; then
-                    echo -e "\e[1;31mA record with '$new_id' already exists.\e[0m"
-                    continue
-                fi
+    if [ $table_index = "r" ]; then
+        continue 2
+    fi
+    
+    if [ "$table_index" -ge 0 ] && [ "$table_index" -lt "${#tables[@]}" ]; then
+        selected_table="${tables[$table_index]}"
+        echo -e "\e[1;32mYou selected table '$selected_table'.\e[0m"
 
-                if ! valid_value "$new_id" "${col_types[0]}"; then
-                    continue 
-                fi
+        IFS=":" read -ra col_names <<< $(awk 'NR==1' "$selected_table")
+        IFS=":" read -ra col_types <<< $(awk 'NR==2' "$selected_table")
 
+        while true; do
+            read -p "Enter a unique value for ${col_names[0]} (${col_types[0]}): " new_id
+
+            if grep -q "^$new_id:" "$selected_table"; then
+                echo -e "\e[1;31mA record with '$new_id' already exists.\e[0m"
+                continue
             fi
-            retry=false
+
+            if ! valid_value "$new_id" "${col_types[0]}"; then
+                continue 
+            fi
+
+            break
         done
 
         values=()
@@ -55,10 +61,11 @@ while true; do
         done
 
         new_record="$new_id:$(IFS=":"; echo "${values[*]}")"
-        echo "$new_record" >> "$table_name"
-        echo -e "\e[1;32mNew record added to '$table_name'.\e[0m"
+        echo "$new_record" >> "$selected_table"
+        echo -e "\e[1;32mNew record added to '$selected_table'.\e[0m"
         break
     else
-        echo -e "\e[1;31mTable '$table_name' does not exist.\e[0m "
+        echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"
+        continue
     fi
 done

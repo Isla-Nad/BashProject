@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dir=~/Downloads/DB_test
+dir=~/Downloads/DATABASE
 if [ ! -d "$dir" ]; then
     mkdir -p "$dir"
 fi
@@ -13,14 +13,22 @@ valid_name() {
     return 0
 }
 
+databases=($(ls -F | grep / | cut -d "/" -f1))
 list_databases() {
-    echo -e "\e[1;34m-----------Available databases:----------------\e[0m"
-    ls -F | grep / | cut -d "/" -f1 | nl -s": "
-	echo -e "\e[1;34m-----------------------------------------------\e[0m"
+    if [ "${#databases[@]}" -eq 0 ]; then
+        echo -e "\e[1;31mNo databases available.\e[0m"
+    else
+        echo -e "\e[1;34m-:Available Databases:-\e[0m"
+        for ((i = 0; i < ${#databases[@]}; i++)); do
+            echo "$i: ${databases[$i]}"
+        done
+        echo -e "\e[1;34m-----------------------\e[0m"
+    fi
 }
 
 create_database() {
     read -p "Enter the name of the new database: " name
+
     if valid_name "$name"; then
         if [ -e "$name" ]; then
             echo -e "\e[1;31mDatabase '$name' already exists.\e[0m"
@@ -35,23 +43,27 @@ create_database() {
 
 connect_to_database() {
     list_databases
-    read -p "Enter the name of the database to connect to: " name
-    if [ -d "$name" ]; then
-        echo -e "\e[1;32mConnected to database '$name'.\e[0m"
-		source TableManagement.sh "$name"
+    read -p "Enter the index of the database you want to select: " db_index
+
+    if [ "$db_index" -ge 0 ] && [ "$db_index" -lt "${#databases[@]}" ]; then
+        selected_database="${databases[$db_index]}"
+        echo -e "\e[1;32mYou selected database '$selected_database'.\e[0m"
+		source TableManagement.sh "$selected_database"
     else
-        echo -e "\e[1;31mDatabase '$name' does not exist.\e[0m"
+        echo -e "\e[1;31mInvalid database index. Please enter a valid index.\e[0m"
     fi
 }
 
 drop_database() {
     list_databases
-    read -p "Enter the name of the database to drop: " name
-    if [ -d "$name" ]; then
-        rm -r "$name"
-        echo -e "\e[1;32mDatabase '$name' has been dropped.\e[0m"
+    read -p "Enter the index of the database you want to drop: " db_index
+
+    if [ "$db_index" -ge 0 ] && [ "$db_index" -lt "${#databases[@]}" ]; then
+        selected_database="${databases[$db_index]}"
+        rm -r "$selected_database"
+        echo -e "\e[1;32mDatabase '$selected_database' has been dropped..\e[0m"
     else
-        echo -e "\e[1;31mDatabase '$name' does not exist.\e[0m"
+        echo -e "\e[1;31mInvalid database index '$db_index'. Please enter a valid index.\e[0m"
     fi
 }
 

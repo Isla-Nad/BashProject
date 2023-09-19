@@ -16,39 +16,69 @@ valid_value() {
 }
 
 while true; do
-    read -p "Enter the name of the table to update: " table_name
-    if [ -f "$table_name" ]; then
+    read -p "Enter the index of the table you want to update (type 'r' to return): " table_index
+
+    if [ $table_index = "r" ]; then
+        continue 2
+    fi
+
+    if [ "$table_index" -ge 0 ] && [ "$table_index" -lt "${#tables[@]}" ]; then
+        selected_table="${tables[$table_index]}"
+        echo -e "\e[1;32mYou selected table '$selected_table'.\e[0m"
 
         while true; do
             echo -e "\e[1;33mUpdate Menu:\e[0m"
-            echo "1. Update Column Value by ID"
-            echo "2. Exit or return"
+            echo "1. Update by ID"
+            echo "2. Return"
+            echo "3. Exit"
             read -p "Enter your choice: " choice
 
             case $choice in
                 1)
-                    mapfile -t selected_id < <(awk -F: '{print $1}' "$table_name")
-                    read -p "Enter the ID of the row you want to update: " update_id
+                    mapfile -t selected_id < <(awk -F: 'NR > 2 {print $1}' "$selected_table")
 
-                    if [[ "${selected_id[@]}" =~ "$update_id" ]]; then
-                        IFS=":" read -ra col_names <<< $(awk 'NR==1' "$table_name")
-                        read -p "Enter the column name you want to update: " update_column
-                        if [[ "${col_names[@]}" =~ "$update_column" ]]; then
-                            col_index=-1
-                            for i in "${!col_names[@]}"; do
-                                if [[ "${col_names[$i]}" = "$update_column" ]]; then
-                                    col_index="${i}";
-                                    break
-                                fi
-                            done
-                            IFS=":" read -ra col_types <<< $(awk 'NR==2' "$table_name")
-                            temp_file="$(mktemp)"
-                            read -p "Enter the new value for '$update_column': " new_value
-                            if ! valid_value "$new_value" "${col_types[$col_index]}"; then
+                    echo -e "\e[1;33m-:Available IDs:-\e[0m"
+                    for ((i = 0; i < ${#selected_id[@]}; i++)); do
+                        echo "$i. ${selected_id[$i]}"
+                    done
+                    echo -e "\e[1;33m-----------------\e[0m"
+
+                    read -p "Enter the id index you want to filter by: " sel_id_index
+
+                    valid_selection=true
+                    if [[ "$sel_id_index" -lt 0 || "$sel_id_index" -ge "${#selected_id[@]}" ]]; then
+                        echo -e "\e[1;31mInvalid column index $sel_id_index. Please enter valid index.\e[0m"
+                        valid_selection=false
+                    fi
+
+                    if [[ "$valid_selection" == true ]]; then
+                        IFS=":" read -ra col_names <<< $(awk 'NR==1' "$selected_table")
+
+                        echo -e "\e[1;33m-:Available columns:-\e[0m"
+                        for ((i = 0; i < ${#col_names[@]}; i++)); do
+                            echo "$i. ${col_names[$i]}"
+                        done
+                        echo -e "\e[1;33m---------------------\e[0m"
+
+                        read -p "Enter the column index you want to filter by: " sel_col_index
+
+                        valid_selection=true
+                        if [[ "$sel_col_index" -lt 0 || "$sel_col_index" -ge "${#col_names[@]}" ]]; then
+                            echo -e "\e[1;31mInvalid column index $sel_col_index. Please enter valid index.\e[0m"
+                            valid_selection=false
+                        fi
+                        
+                        if [[ "$valid_selection" == true ]]; then
+                            IFS=":" read -ra col_types <<< $(awk 'NR==2' "$selected_table")
+                            
+                            read -p "Enter the new value for '${col_names[$sel_col_index]}': " new_value
+
+                            if ! valid_value "$new_value" "${col_types[$sel_col_index]}"; then
                                 continue 
                             fi
 
-                            awk -v update_id="$update_id" -v col_index="$col_index" -v new_value="$new_value" -F: '
+                            temp_file="$(mktemp)"
+                            awk -v update_id="${selected_id[$sel_id_index]}" -v col_index="$sel_col_index" -v new_value="$new_value" -F: '
                                 BEGIN { OFS=":"; }
                                 {
                                     if ($1 == update_id) {
@@ -56,20 +86,18 @@ while true; do
                                     }
                                     print $0;
                                 }
-                            ' "$table_name" > "$temp_file"
+                            ' "$selected_table" > "$temp_file"
 
-                            mv "$temp_file" "$table_name"
+                            mv "$temp_file" "$selected_table"
 
-                            echo -e "\e[1;32mColumn '$update_column' for ID '$update_id' updated successfully.\e[0m"
-                        else
-                             echo -e "\e[1;31mColumn '$update_column' not found in '$table_name'.\e[0m"
+                            echo -e "\e[1;32mColumn '${col_names[$sel_col_index]}' for ID '${selected_id[$sel_id_index]}' updated successfully.\e[0m"
                         fi
-                    else
-                        echo -e "\e[1;31mSelected ID '$update_id' not found in table '$table_name'.\e[0m"
                     fi
-
                     ;;
                 2)
+                    continue 3
+                    ;;
+                3)
                     echo -e "\e[1;33mGoodbye\e[0m"
                     exit
                     ;;
@@ -80,7 +108,7 @@ while true; do
         done
 
     else
-        echo -e "Table \e[1;31m$table_name\e[0m does not exist."
+        echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"
         continue
     fi
 done

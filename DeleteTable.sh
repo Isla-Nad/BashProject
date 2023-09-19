@@ -1,61 +1,87 @@
 #! /usr/bin/bash
 
 while true; do
-    read -p "Enter the name of the table to delete from: " table_name
-    if [ -f "$table_name" ]; then
+    read -p "Enter the index of the table you want to delete from (type 'r' to return): " table_index
+
+    if [ $table_index = "r" ]; then
+        continue 2
+    fi
+    
+    if [ "$table_index" -ge 0 ] && [ "$table_index" -lt "${#tables[@]}" ]; then
+        selected_table="${tables[$table_index]}"
+        echo -e "\e[1;32mYou selected table '$selected_table'.\e[0m"
 
         while true; do
             echo -e "\e[1;33mDelete Menu:\e[0m"
             echo "1. Delete all"
             echo "2. Delete rows"
-            echo "3. Exit or return"
+            echo "3. Return"
+            echo "4. Exit"
             read -p "Enter your choice: " choice
             case $choice in
                 1)
-                    awk 'NR < 3' "$table_name" > "$table_name.temp"
-                    mv "$table_name.temp" "$table_name" 
-                    echo -e "\e[1;32mAll data deleted in '$table_name' successfully except meta data.\e[0m"
+                    awk 'NR < 3' "$selected_table" > "$selected_table.temp"
+                    mv "$selected_table.temp" "$selected_table" 
+                    echo -e "\e[1;32mAll data deleted in '$selected_table' successfully except meta data.\e[0m"
                     ;;
                 2)
-                    IFS=":" read -ra col_names <<< $(awk 'NR==1' "$table_name")
-                    read -p "Enter the column name you want to filter by: " col_name
-                    if [[ "${col_names[@]}" =~ "$col_name" ]]; then
-                        col_index=-1
-                        for i in "${!col_names[@]}"; do
-                            if [[ "${col_names[$i]}" = "$col_name" ]]; then
-                                col_index="${i}";
-                                break
-                            fi
+                    IFS=":" read -ra col_names <<< $(awk 'NR==1' "$selected_table")
+
+                    echo -e "\e[1;33m-:Available columns:-\e[0m"
+                    for ((i = 0; i < ${#col_names[@]}; i++)); do
+                        echo "$i. ${col_names[$i]}"
+                    done
+                    echo -e "\e[1;33m---------------------\e[0m"
+
+                    read -p "Enter the column index you want to filter by: " sel_col_index
+
+                    valid_selection=true
+                    if [[ "$sel_col_index" -lt 0 || "$sel_col_index" -ge "${#col_names[@]}" ]]; then
+                        echo -e "\e[1;31mInvalid column index $sel_col_index. Please enter valid index.\e[0m"
+                        valid_selection=false
+                    fi
+                    
+                    if [[ "$valid_selection" == true ]]; then
+
+                        mapfile -t selected_column < <(awk -F: -v col_index="$sel_col_index" 'NR > 2 {print $((col_index+1))}' "$selected_table")
+
+                        echo -e "\e[1;33m-:Available values:-\e[0m"
+                        for ((i = 0; i < ${#selected_column[@]}; i++)); do
+                            echo "$i. ${selected_column[$i]}"
                         done
-                        if [ "$col_index" -ge 0 ] ; then
-                            mapfile -t selected_column < <(awk -F: -v col_index="$col_index" '{print $((col_index+1))}' "$table_name")
+                        echo -e "\e[1;33m--------------------\e[0m"
+
+                        read -p "Enter the index of the value in column '${col_names[$sel_col_index]}' to filter by: " sel_val_index
+
+                        valid_selection=true
+                        if [[ "$sel_val_index" -lt 0 || "$sel_val_index" -ge "${#selected_column[@]}" ]]; then
+                            echo -e "\e[1;31mInvalid value index $sel_val_index. Please enter valid index.\e[0m"
+                            valid_selection=false
                         fi
-                        temp_file="$(mktemp)"
-                        read -p "Enter the value in column '$col_name' to filter by: " filter_value
-                        if [[ "${selected_column[@]}" =~ "$filter_value" ]]; then
-                            awk -v col_index="$col_index" -v filter_value="$filter_value" -F: '
+                        
+                        if [[ "$valid_selection" == true ]]; then
+
+                            temp_file="$(mktemp)"
+                            awk -v col_index="$sel_col_index" -v filter_value="${selected_column[sel_val_index]}" -F: '
                                 BEGIN { OFS=":"; }
                                 {
                                     if ($((col_index+1)) == filter_value) {
                                         next; 
                                     }
-                                    print $0 >> "'"$temp_file"'";  
+                                    print $0;  
                                 }
-                                END {
-                                    close("'"$temp_file"'");
-                                    system("mv '"$temp_file"' '"$table_name"'"); 
-                                }
-                            ' "$table_name"
-                            echo -e "\e[1;32mRows in '$table_name' with '$col_name'='$filter_value' deleted successfully.\e[0m"
-                        else
-                            echo -e "\e[1;31mValue '$filter_value' not found in column '$col_name'.\e[0m"
+                            ' "$selected_table" > "$temp_file"
+
+                            mv "$temp_file" "$selected_table"
+
+                            echo -e "\e[1;32mRows in '$selected_table' where '${col_names[$sel_col_index]}'='${selected_column[sel_val_index]}' deleted successfully.\e[0m"
                         fi
-                    else
-                        echo -e "\e[1;31mColumn '$col_name' not found in '$table_name'.\e[0m"
                     fi
                     ;;
 
                 3)
+                    continue 3 ;;
+                4)
                     echo -e "\e[1;33mGoodbye\e[0m"; exit ;;
                 *)
                     echo -e "\e[1;31mInvalid choice. Please enter a valid option.\e[0m" ;;
@@ -63,7 +89,7 @@ while true; do
         done
 
     else
-        echo -e "Table \e[1;31m$table_name\e[0m does not exist."
+        echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"
         continue
     fi
 done
