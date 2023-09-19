@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 valid_value() {
     if [ "$2" == "int" ]; then

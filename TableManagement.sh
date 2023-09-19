@@ -1,24 +1,26 @@
-#!/usr/bin/bash.
+#!/usr/bin/bash
 
 cd "$1"
 
-tables=($(ls --file-type | grep -v /$))
 
-list_tables() {
-    if [ "${#tables[@]}" -eq 0 ]; then
-        echo -e "\e[1;31mNo tables available.\e[0m"
-    else
-        echo -e "\e[1;34m-:Available tables:-\e[0m"
-        for ((i = 0; i < ${#tables[@]}; i++)); do
-            echo "$i: ${tables[$i]}"
-        done
-        echo -e "\e[1;34m--------------------\e[0m"
-    fi
-}
 
 
 
 while true; do
+
+    tables=($(ls --file-type | grep -v /$))
+    list_tables() {
+        if [ "${#tables[@]}" -eq 0 ]; then
+            echo -e "\e[1;31mNo tables available.\e[0m"
+        else
+            echo -e "\e[1;34m-:Available tables:-\e[0m"
+            for ((i = 0; i < ${#tables[@]}; i++)); do
+                echo "$i: ${tables[$i]}"
+            done
+            echo -e "\e[1;34m--------------------\e[0m"
+        fi
+    }
+
     echo -e "\e[1;33mTable Management Menu:\e[0m"
     echo "1. Create Table"
     echo "2. List Tables"
@@ -65,7 +67,7 @@ while true; do
                 selected_table="${tables[$table_index]}"
 
                 rm "$selected_table"
-                
+
                 echo -e "\e[1;32mTable $selected_table has been dropped.\e[0m"
             else
                 echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"

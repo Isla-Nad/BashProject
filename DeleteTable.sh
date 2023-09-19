@@ -1,6 +1,7 @@
-#! /usr/bin/bash
+#!/usr/bin/bash
 
 while true; do
+
     read -p "Enter the index of the table you want to delete from (type 'r' to return): " table_index
 
     if [ $table_index = "r" ]; then
@@ -62,7 +63,7 @@ while true; do
                         if [[ "$valid_selection" == true ]]; then
 
                             temp_file="$(mktemp)"
-                            awk -v col_index="$sel_col_index" -v filter_value="${selected_column[sel_val_index]}" -F: '
+                            awk -v col_index="$sel_col_index" -v filter_value="${selected_column[$sel_val_index]}" -F: '
                                 BEGIN { OFS=":"; }
                                 {
                                     if ($((col_index+1)) == filter_value) {
@@ -74,7 +75,7 @@ while true; do
 
                             mv "$temp_file" "$selected_table"
 
-                            echo -e "\e[1;32mRows in '$selected_table' where '${col_names[$sel_col_index]}'='${selected_column[sel_val_index]}' deleted successfully.\e[0m"
+                            echo -e "\e[1;32mRows in '$selected_table' where '${col_names[$sel_col_index]}'='${selected_column[$sel_val_index]}' deleted successfully.\e[0m"
                         fi
                     fi
                     ;;

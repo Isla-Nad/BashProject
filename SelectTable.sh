@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+#!/usr/bin/bash
 
 seperator() {
     awk -F ':' 'BEGIN { OFS=" | "; }
@@ -90,7 +90,7 @@ while true; do
                         if [[ "$valid_selection" == true ]]; then
 
                             seperator
-                            awk -F: -v col_index="$sel_col_index" -v filter_value="${selected_column[sel_val_index]}" '
+                            awk -F: -v col_index="$sel_col_index" -v filter_value="${selected_column[$sel_val_index]}" '
                             BEGIN { OFS=" | "; }
                             (NR == 1 || $((col_index+1)) == filter_value) {
                                 for (i = 1; i <= NF; i++) {
@@ -145,7 +145,7 @@ while true; do
                         {
                             line = "";
                             for (i in indices) {
-                                col_index = indices[i] + 1;  # Adjust for 0-based indexing
+                                col_index = indices[i] + 1; 
                                 line = line sprintf("%-11s" OFS, $col_index);
                             }
                             line = OFS line ;
@@ -163,7 +163,7 @@ while true; do
                         {
                             line = "";
                             for (i = 1; i <= length(indices); i++) {
-                                col_index = indices[i] + 1;  # Adjust for 0-based indexing
+                                col_index = indices[i] + 1;
                                 line = line sprintf("%-11s" OFS, $col_index );
                             }
                             columns[NR] = OFS line ;
@@ -185,7 +185,7 @@ while true; do
                         {
                             line = "";
                             for (i in indices) {
-                                col_index = indices[i] + 1;  # Adjust for 0-based indexing
+                                col_index = indices[i] + 1;
                                 line = line sprintf("%-11s" OFS, $col_index);
                             }
                             line = OFS line ;

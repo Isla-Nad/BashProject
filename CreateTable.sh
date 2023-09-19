@@ -31,10 +31,19 @@ while true; do
             for ((i = 2; i <= col_num; i++)); do
                 while true; do
                     read -p "Enter name for column $i: " col_name
-                    if valid_name "$col_name"; then
+
+                    duplicate=true
+                    for existing_col_name in "${col_names[@]}"; do
+                        if [ "$existing_col_name" = "$col_name" ]; then
+                            duplicate=false
+                            break
+                        fi
+                    done
+
+                    if ( valid_name "$col_name" ) && [[ "$duplicate" == true ]]; then
                         break
                     else
-                        echo -e "\e[1;31mInvalid column name. Please use only alphanumeric characters, starting with a letter or underscore.\e[0m"
+                        echo -e "\e[1;31mInvalid or duplicate column name. Please use only alphanumeric characters, starting with a letter or underscore, and ensure it's unique.\e[0m"
                     fi
                 done
 

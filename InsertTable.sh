@@ -16,6 +16,7 @@ valid_value() {
 }
 
 while true; do
+
     read -p "Enter the index of the table you want to insert into (type 'r' to return): " table_index
 
     if [ $table_index = "r" ]; then
