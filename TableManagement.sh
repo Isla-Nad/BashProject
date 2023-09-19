@@ -1,15 +1,26 @@
 #!/usr/bin/bash
+
 cd "$1"
 
-PS3=$'\e[1;33mDatabase: \e[0m\e[1;36m'"$1"$'\e[1;35m ✅\e[0m '
 
-list_tables() {
-    echo -e "\e[1;34m-----------Available tables:----------------\e[0m"
-    ls --file-type | grep -v /$ | nl -s": "
-    echo -e "\e[1;34m--------------------------------------------\e[0m"
-}
+
+
 
 while true; do
+
+    tables=($(ls --file-type | grep -v /$))
+    list_tables() {
+        if [ "${#tables[@]}" -eq 0 ]; then
+            echo -e "\e[1;31mNo tables available.\e[0m"
+        else
+            echo -e "\e[1;34m-:Available tables:-\e[0m"
+            for ((i = 0; i < ${#tables[@]}; i++)); do
+                echo "$i: ${tables[$i]}"
+            done
+            echo -e "\e[1;34m--------------------\e[0m"
+        fi
+    }
+
     echo -e "\e[1;33mTable Management Menu:\e[0m"
     echo "1. Create Table"
     echo "2. List Tables"
@@ -18,7 +29,8 @@ while true; do
     echo "5. Update Table"
     echo "6. Delete from Table"
     echo "7. Drop Table"
-    echo "8. Exit"
+    echo "8. Return"
+    echo "9. Exit"
     read -p "Enter your choice: " choice
     case $choice in
         1)
@@ -45,15 +57,27 @@ while true; do
             ;;
         7)
             list_tables
-            read -p "Enter the name of the table to drop: " name
-            if [ -f "$name" ]; then
-                rm "$name"
-                echo -e "Table \e[1;32m$name\e[0m has been dropped."
+            read -p "Enter the index of the table you want to select from (type 'r' to return): " table_index
+
+            if [ $table_index = "r" ]; then
+                continue 2
+            fi
+            
+            if [ "$table_index" -ge 0 ] && [ "$table_index" -lt "${#tables[@]}" ]; then
+                selected_table="${tables[$table_index]}"
+
+                rm "$selected_table"
+
+                echo -e "\e[1;32mTable $selected_table has been dropped.\e[0m"
             else
-                echo -e "Table \e[1;31m$name\e[0m does not exist."
+                echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"
             fi 
             ;;
         8)
+            cd ..
+            break
+            ;;
+        9)
             echo -e "\e[1;33mGoodbye\e[0m"
             exit
             ;;
