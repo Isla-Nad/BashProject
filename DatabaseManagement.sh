@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+xdg-open 'FlowChart.jpeg'
+
 dir=~/Downloads/DATABASE
 if [ ! -d "$dir" ]; then
     mkdir -p "$dir"
