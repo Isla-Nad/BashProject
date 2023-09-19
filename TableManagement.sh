@@ -55,12 +55,20 @@ while true; do
             ;;
         7)
             list_tables
-            read -p "Enter the name of the table to drop: " name
-            if [ -f "$name" ]; then
-                rm "$name"
-                echo -e "\e[1;32mTable $name has been dropped.\e[0m"
+            read -p "Enter the index of the table you want to select from (type 'r' to return): " table_index
+
+            if [ $table_index = "r" ]; then
+                continue 2
+            fi
+            
+            if [ "$table_index" -ge 0 ] && [ "$table_index" -lt "${#tables[@]}" ]; then
+                selected_table="${tables[$table_index]}"
+
+                rm "$selected_table"
+                
+                echo -e "\e[1;32mTable $selected_table has been dropped.\e[0m"
             else
-                echo -e "\e[1;31mTable $name does not exist.\e[0m"
+                echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"
             fi 
             ;;
         8)
