@@ -2,10 +2,6 @@
 
 cd "$1"
 
-
-
-
-
 while true; do
 
     tables=($(ls --file-type | grep -v /$))

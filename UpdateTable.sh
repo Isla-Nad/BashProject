@@ -43,56 +43,56 @@ while true; do
                     done
                     echo -e "\e[1;33m-----------------\e[0m"
 
-                    read -p "Enter the id index you want to filter by: " sel_id_index
+                    while true; do
+                        read -p "Enter the id index you want to filter by: " sel_id_index
+                        if [[ "$sel_id_index" -lt 0 || "$sel_id_index" -ge "${#selected_id[@]}" ]]; then
+                            echo -e "\e[1;31mInvalid column index $sel_id_index. Please enter valid index.\e[0m"
+                            continue
+                        fi
+                        break
+                    done
 
-                    valid_selection=true
-                    if [[ "$sel_id_index" -lt 0 || "$sel_id_index" -ge "${#selected_id[@]}" ]]; then
-                        echo -e "\e[1;31mInvalid column index $sel_id_index. Please enter valid index.\e[0m"
-                        valid_selection=false
-                    fi
+                    IFS=":" read -ra col_names <<< $(awk 'NR==1' "$selected_table")
 
-                    if [[ "$valid_selection" == true ]]; then
-                        IFS=":" read -ra col_names <<< $(awk 'NR==1' "$selected_table")
-
-                        echo -e "\e[1;33m-:Available columns:-\e[0m"
-                        for ((i = 0; i < ${#col_names[@]}; i++)); do
-                            echo "$i. ${col_names[$i]}"
-                        done
-                        echo -e "\e[1;33m---------------------\e[0m"
-
-                        read -p "Enter the column index you want to filter by: " sel_col_index
-
-                        valid_selection=true
+                    echo -e "\e[1;33m-:Available columns:-\e[0m"
+                    for ((i = 0; i < ${#col_names[@]}; i++)); do
+                        echo "$i. ${col_names[$i]}"
+                    done
+                    echo -e "\e[1;33m---------------------\e[0m"
+                        
+                    while true; do
+                    read -p "Enter the column index you want to filter by: " sel_col_index
                         if [[ "$sel_col_index" -lt 0 || "$sel_col_index" -ge "${#col_names[@]}" ]]; then
                             echo -e "\e[1;31mInvalid column index $sel_col_index. Please enter valid index.\e[0m"
-                            valid_selection=false
+                            continue
                         fi
+                        break
+                    done
                         
-                        if [[ "$valid_selection" == true ]]; then
-                            IFS=":" read -ra col_types <<< $(awk 'NR==2' "$selected_table")
-                            
-                            read -p "Enter the new value for '${col_names[$sel_col_index]}': " new_value
+                    IFS=":" read -ra col_types <<< $(awk 'NR==2' "$selected_table")
 
-                            if ! valid_value "$new_value" "${col_types[$sel_col_index]}"; then
-                                continue 
-                            fi
-
-                            temp_file="$(mktemp)"
-                            awk -v update_id="${selected_id[$sel_id_index]}" -v col_index="$sel_col_index" -v new_value="$new_value" -F: '
-                                BEGIN { OFS=":"; }
-                                {
-                                    if ($1 == update_id) {
-                                        $((col_index+1)) = new_value;
-                                    }
-                                    print $0;
-                                }
-                            ' "$selected_table" > "$temp_file"
-
-                            mv "$temp_file" "$selected_table"
-
-                            echo -e "\e[1;32mColumn '${col_names[$sel_col_index]}' for ID '${selected_id[$sel_id_index]}' updated successfully.\e[0m"
+                    while true; do       
+                        read -p "Enter the new value for '${col_names[$sel_col_index]}': " new_value
+                        if ! valid_value "$new_value" "${col_types[$sel_col_index]}"; then
+                            continue 
                         fi
-                    fi
+                        break
+                    done
+
+                    temp_file="$(mktemp)"
+                    awk -v update_id="${selected_id[$sel_id_index]}" -v col_index="$sel_col_index" -v new_value="$new_value" -F: '
+                        BEGIN { OFS=":"; }
+                        {
+                            if ($1 == update_id) {
+                                $((col_index+1)) = new_value;
+                            }
+                            print $0;
+                        }
+                    ' "$selected_table" > "$temp_file"
+
+                    mv "$temp_file" "$selected_table"
+
+                    echo -e "\e[1;32mColumn '${col_names[$sel_col_index]}' for ID '${selected_id[$sel_id_index]}' updated successfully.\e[0m"
                     ;;
                 2)
                     continue 3

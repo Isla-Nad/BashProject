@@ -34,50 +34,46 @@ while true; do
                     done
                     echo -e "\e[1;33m---------------------\e[0m"
 
-                    read -p "Enter the column index you want to filter by: " sel_col_index
-
-                    valid_selection=true
-                    if [[ "$sel_col_index" -lt 0 || "$sel_col_index" -ge "${#col_names[@]}" ]]; then
-                        echo -e "\e[1;31mInvalid column index $sel_col_index. Please enter valid index.\e[0m"
-                        valid_selection=false
-                    fi
+                    while true; do
+                        read -p "Enter the column index you want to filter by: " sel_col_index
+                        if [[ "$sel_col_index" -lt 0 || "$sel_col_index" -ge "${#col_names[@]}" ]]; then
+                            echo -e "\e[1;31mInvalid column index $sel_col_index. Please enter valid index.\e[0m"
+                            continue
+                        fi
+                        break
+                    done
                     
-                    if [[ "$valid_selection" == true ]]; then
+                    mapfile -t selected_column < <(awk -F: -v col_index="$sel_col_index" 'NR > 2 {print $((col_index+1))}' "$selected_table")
 
-                        mapfile -t selected_column < <(awk -F: -v col_index="$sel_col_index" 'NR > 2 {print $((col_index+1))}' "$selected_table")
+                    echo -e "\e[1;33m-:Available values:-\e[0m"
+                    for ((i = 0; i < ${#selected_column[@]}; i++)); do
+                        echo "$i. ${selected_column[$i]}"
+                    done
+                    echo -e "\e[1;33m--------------------\e[0m"
 
-                        echo -e "\e[1;33m-:Available values:-\e[0m"
-                        for ((i = 0; i < ${#selected_column[@]}; i++)); do
-                            echo "$i. ${selected_column[$i]}"
-                        done
-                        echo -e "\e[1;33m--------------------\e[0m"
-
+                    while true; do
                         read -p "Enter the index of the value in column '${col_names[$sel_col_index]}' to filter by: " sel_val_index
-
-                        valid_selection=true
                         if [[ "$sel_val_index" -lt 0 || "$sel_val_index" -ge "${#selected_column[@]}" ]]; then
                             echo -e "\e[1;31mInvalid value index $sel_val_index. Please enter valid index.\e[0m"
-                            valid_selection=false
+                            continue
                         fi
+                        break
+                    done
                         
-                        if [[ "$valid_selection" == true ]]; then
+                    temp_file="$(mktemp)"
+                    awk -v col_index="$sel_col_index" -v filter_value="${selected_column[$sel_val_index]}" -F: '
+                        BEGIN { OFS=":"; }
+                        {
+                            if ($((col_index+1)) == filter_value) {
+                                next; 
+                            }
+                            print $0;  
+                        }
+                    ' "$selected_table" > "$temp_file"
 
-                            temp_file="$(mktemp)"
-                            awk -v col_index="$sel_col_index" -v filter_value="${selected_column[$sel_val_index]}" -F: '
-                                BEGIN { OFS=":"; }
-                                {
-                                    if ($((col_index+1)) == filter_value) {
-                                        next; 
-                                    }
-                                    print $0;  
-                                }
-                            ' "$selected_table" > "$temp_file"
+                    mv "$temp_file" "$selected_table"
 
-                            mv "$temp_file" "$selected_table"
-
-                            echo -e "\e[1;32mRows in '$selected_table' where '${col_names[$sel_col_index]}'='${selected_column[$sel_val_index]}' deleted successfully.\e[0m"
-                        fi
-                    fi
+                    echo -e "\e[1;32mRows in '$selected_table' where '${col_names[$sel_col_index]}'='${selected_column[$sel_val_index]}' deleted successfully.\e[0m"
                     ;;
 
                 3)
