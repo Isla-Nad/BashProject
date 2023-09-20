@@ -41,37 +41,47 @@ while true; do
             ;;
         3)
             list_tables
-            source InsertTable.sh
+            if [ "${#tables[@]}" -gt 0 ]; then
+                source InsertTable.sh
+            fi
             ;;
         4)
             list_tables
-            source SelectTable.sh
+            if [ "${#tables[@]}" -gt 0 ]; then
+                source SelectTable.sh
+            fi
             ;;
         5)
             list_tables
-            source UpdateTable.sh
+            if [ "${#tables[@]}" -gt 0 ]; then
+                source UpdateTable.sh
+            fi
             ;;
         6)
             list_tables
-            source DeleteTable.sh
+            if [ "${#tables[@]}" -gt 0 ]; then
+                source DeleteTable.sh
+            fi
             ;;
         7)
             list_tables
-            read -p "Enter the index of the table you want to select from (type 'r' to return): " table_index
+            if [ "${#tables[@]}" -gt 0 ]; then
+                read -p "Enter the index of the table you want to select from (type 'r' to return): " table_index
 
-            if [ $table_index = "r" ]; then
-                continue 2
+                if [ $table_index = "r" ]; then
+                    continue 2
+                fi
+                
+                if [ "$table_index" -ge 0 ] && [ "$table_index" -lt "${#tables[@]}" ]; then
+                    selected_table="${tables[$table_index]}"
+
+                    rm "$selected_table"
+
+                    echo -e "\e[1;32mTable $selected_table has been dropped.\e[0m"
+                else
+                    echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"
+                fi
             fi
-            
-            if [ "$table_index" -ge 0 ] && [ "$table_index" -lt "${#tables[@]}" ]; then
-                selected_table="${tables[$table_index]}"
-
-                rm "$selected_table"
-
-                echo -e "\e[1;32mTable $selected_table has been dropped.\e[0m"
-            else
-                echo -e "\e[1;31mInvalid table index '$table_index'. Please enter a valid index.\e[0m"
-            fi 
             ;;
         8)
             cd ..

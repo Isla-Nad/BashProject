@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-xdg-open 'Flowchart.jpeg'
+xdg-open "$(dirname "$0")/Flowchart.jpeg"
 
 dir=~/Downloads/DATABASE
 if [ ! -d "$dir" ]; then
@@ -47,27 +47,31 @@ while true; do
 
     connect_to_database() {
         list_databases
-        read -p "Enter the index of the database you want to select: " db_index
+        if [ "${#databases[@]}" -gt 0 ]; then
+            read -p "Enter the index of the database you want to select: " db_index
 
-        if [ "$db_index" -ge 0 ] && [ "$db_index" -lt "${#databases[@]}" ]; then
-            selected_database="${databases[$db_index]}"
-            echo -e "\e[1;32mYou selected database '$selected_database'.\e[0m"
-            source TableManagement.sh "$selected_database"
-        else
-            echo -e "\e[1;31mInvalid database index. Please enter a valid index.\e[0m"
+            if [ "$db_index" -ge 0 ] && [ "$db_index" -lt "${#databases[@]}" ]; then
+                selected_database="${databases[$db_index]}"
+                echo -e "\e[1;32mYou selected database '$selected_database'.\e[0m"
+                source TableManagement.sh "$selected_database"
+            else
+                echo -e "\e[1;31mInvalid database index. Please enter a valid index.\e[0m"
+            fi
         fi
     }
 
     drop_database() {
         list_databases
-        read -p "Enter the index of the database you want to drop: " db_index
+        if [ "${#databases[@]}" -gt 0 ]; then
+            read -p "Enter the index of the database you want to drop: " db_index
 
-        if [ "$db_index" -ge 0 ] && [ "$db_index" -lt "${#databases[@]}" ]; then
-            selected_database="${databases[$db_index]}"
-            rm -r "$selected_database"
-            echo -e "\e[1;32mDatabase '$selected_database' has been dropped..\e[0m"
-        else
-            echo -e "\e[1;31mInvalid database index '$db_index'. Please enter a valid index.\e[0m"
+            if [ "$db_index" -ge 0 ] && [ "$db_index" -lt "${#databases[@]}" ]; then
+                selected_database="${databases[$db_index]}"
+                rm -r "$selected_database"
+                echo -e "\e[1;32mDatabase '$selected_database' has been dropped..\e[0m"
+            else
+                echo -e "\e[1;31mInvalid database index '$db_index'. Please enter a valid index.\e[0m"
+            fi
         fi
     }
     echo -e "\e[1;33mDatabase Management Menu:\e[0m"
